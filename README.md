@@ -32,9 +32,9 @@ Since i build and maintain this all by myself, **please consider starring ⭐ th
 
 ### Filesystem
 
-This setup is strictly optimized for **BTRFS**.
+This setup is strictly optimized for **BTRFS file system format**. (should also work on ext4 but not recommanded)
 
-- **Why?** ZSTD compression, Copy-on-Write (CoW) to prevent data corruption, and instant Snapshots.
+- **Why?** ZSTD compression, copy on write (CoW) to prevent data corruption, and you also get instant Snapshots.
     
 
 ### Hardware Config (Intel/Nvidia/AMD)
