@@ -61,6 +61,7 @@ readonly TARGET_FILES=(
     "brightness_slider.desktop"
     "cache_purge.desktop"
     "clipboard_persistance.desktop"
+    "dusky_control_center.desktop"
     "file_switcher.desktop"
     "google_image_search.desktop"
     "hypridle_timeout.desktop"

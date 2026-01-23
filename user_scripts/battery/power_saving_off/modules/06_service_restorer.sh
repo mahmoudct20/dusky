@@ -135,7 +135,8 @@ start_process() {
 
     # Start via UWSM (Native User Context)
     # No sudo needed. It inherits YOUR Wayland socket.
-    uwsm-app -- "$name" >/dev/null 2>&1 & 
+    # FIX: Added 'nohup' to prevent SIGHUP when the terminal closes
+    nohup uwsm-app -- "$name" >/dev/null 2>&1 & 
     disown $!
 
     sleep "$PROCESS_START_WAIT"
