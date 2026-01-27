@@ -198,17 +198,27 @@
   },
 
   "pulseaudio#output": {
-    "format": "{icon}",
+    "format": "{icon} {volume}%",
     "format-muted": "󰖁",
+    "format-bluetooth": "󰂰 {volume}%",
+    "format-bluetooth-muted": "󰂲",
     "format-icons": {
+      "headphone": "󰋋",
+      "hands-free": "󰋎",
+      "headset": "󰋎",
+      "phone": "",
+      "portable": "",
+      "car": "",
       "default": ["󰕿", "󰖀", "󰕾"]
     },
     "on-click": "uwsm-app -- pavucontrol",
-    "on-click-middle": "swayosd-client --output-volume mute-toggle",
     "on-click-right": "uwsm-app -- kitty --class cava -e cava",
+    "on-click-middle": "swayosd-client --output-volume mute-toggle",
     "on-scroll-up": "swayosd-client --output-volume raise",
     "on-scroll-down": "swayosd-client --output-volume lower",
-    "tooltip-format": "Volume: {volume}%\n\n LMB  Pavucontrol\n MMB  Mute\n RMB  Visualizer"
+    "tooltip-format": "{desc}\nVolume: {volume}%\n\nLMB: Pavucontrol\nRMB: Cava\nMMB: Mute Toggle\nScroll: Volume",
+    "scroll-step": 5,
+    "max-volume": 150
   },
 
   "backlight": {
@@ -262,5 +272,11 @@
     "format": "⏻",
     "on-click": "uwsm-app -- ~/user_scripts/wlogout/wlogout_scale.sh",
     "tooltip-format": "Power Menu"
+  },
+
+  "custom/lyrics": {
+    "exec": "lrcsnc",
+    "escape": true,
+    "min-length": 1
   }
 }

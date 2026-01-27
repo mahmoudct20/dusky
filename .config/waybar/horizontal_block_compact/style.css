@@ -386,7 +386,7 @@ window#waybar > box {
   border-radius: 10px;
   background-color: alpha(@surface_container, 0.6);
   color: @on_surface;
-  font-size: 14px;
+  font-size: 12px;
   transition: all 0.2s ease-in-out;
 }
 
