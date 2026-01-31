@@ -30,11 +30,8 @@ readonly STATE_FILE="${STATE_DIR}/state.conf"
 readonly LOCK_FILE="/tmp/theme_ctl.lock"
 
 # Public state for external scripts (0=Dark, 1=Light)
+# Now resides in the same directory as STATE_FILE
 readonly PUBLIC_STATE_FILE="${STATE_DIR}/state"
-
-# Wallpaper Sequence Tracking Files
-readonly TRACK_LIGHT="${STATE_DIR}/light_wal"
-readonly TRACK_DARK="${STATE_DIR}/dark_wal"
 
 readonly BASE_PICTURES="${HOME}/Pictures"
 readonly WALLPAPER_ROOT="${BASE_PICTURES}/wallpapers"
@@ -80,8 +77,7 @@ trim_trailing() {
 check_deps() {
     local cmd
     local -a missing=()
-    # Added 'sort' and 'find' to checks just in case, though they are coreutils
-    for cmd in swww matugen flock find sort; do
+    for cmd in swww matugen flock; do
         command -v "$cmd" &>/dev/null || missing+=("$cmd")
     done
     (( ${#missing[@]} == 0 )) || die "Missing required commands: ${missing[*]}"
@@ -260,73 +256,26 @@ ensure_swaync_running() {
     sleep 0.5
 }
 
-select_next_wallpaper() {
+select_random_wallpaper() {
     (
-        # 1. Determine which tracking file to use based on current mode
-        local track_file
-        if [[ "$THEME_MODE" == "light" ]]; then
-            track_file="$TRACK_LIGHT"
-        else
-            track_file="$TRACK_DARK"
-        fi
+        shopt -s nullglob globstar
+        # Try active theme directory first (recursive)
+        local -a wallpapers=("${ACTIVE_THEME_DIR}"/**/*.{jpg,jpeg,png,webp,gif})
 
-        # 2. Collect wallpapers using FIND + SORT -V (Natural Sort)
-        # We use mapfile (readarray) to handle filenames with spaces correctly.
-        # sort -V ensures 1.jpg -> 2.jpg -> 10.jpg sequence.
-        local -a wallpapers
-        mapfile -d '' wallpapers < <(
-            find "${ACTIVE_THEME_DIR}" -type f \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" -o -iname "*.webp" -o -iname "*.gif" \) -print0 | sort -z -V
-        )
-
-        # FALLBACK: If active theme is empty, check the parent root
+        # FALLBACK: If active theme is empty, check the parent root (flat search)
         if (( ${#wallpapers[@]} == 0 )); then
-             mapfile -d '' wallpapers < <(
-                find "${WALLPAPER_ROOT}" -maxdepth 1 -type f \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" -o -iname "*.webp" -o -iname "*.gif" \) -print0 | sort -z -V
-            )
+            wallpapers=("${WALLPAPER_ROOT}"/*.{jpg,jpeg,png,webp,gif})
         fi
 
         (( ${#wallpapers[@]} > 0 )) || exit 1
-
-        # 3. Read the last used wallpaper for this mode
-        local last_wal=""
-        if [[ -f "$track_file" ]]; then
-            last_wal=$(<"$track_file")
-        fi
-
-        # 4. Find the index of the last wallpaper
-        local next_index=0
-        local i
-
-        if [[ -n "$last_wal" ]]; then
-            for i in "${!wallpapers[@]}"; do
-                # Compare filenames only (paths change during dir swaps)
-                if [[ "${wallpapers[$i]##*/}" == "$last_wal" ]]; then
-                    next_index=$(( i + 1 ))
-                    break
-                fi
-            done
-        fi
-
-        # 5. Handle Wrap-around
-        if (( next_index >= ${#wallpapers[@]} )); then
-            next_index=0
-        fi
-
-        local selected="${wallpapers[$next_index]}"
-
-        # 6. Save state (Filename only)
-        # Ensure parent dir exists
-        mkdir -p "${track_file%/*}"
-        printf '%s' "${selected##*/}" > "$track_file"
-
-        printf '%s' "$selected"
+        printf '%s' "${wallpapers[RANDOM % ${#wallpapers[@]}]}"
     )
 }
 
+
 apply_random_wallpaper() {
     local wallpaper
-    # Updated to use the sequential logic
-    wallpaper=$(select_next_wallpaper) || die "No wallpapers found in ${ACTIVE_THEME_DIR}"
+    wallpaper=$(select_random_wallpaper) || die "No wallpapers found in ${ACTIVE_THEME_DIR}"
 
     log "Selected: ${wallpaper##*/}"
 
@@ -410,7 +359,7 @@ Commands:
               --contrast <num|disable>
               --defaults  Reset all settings to defaults
               --no-wall   Prevent wallpaper change (e.g., during refresh)
-  random    Cycle to next wallpaper (chronological/natural sort) and apply theme.
+  random    Pick random wallpaper and apply theme.
   refresh   Regenerate colors for current wallpaper.
   get       Show current configuration.
 
